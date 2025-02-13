@@ -1,4 +1,4 @@
-# witness-generation
+# Plonky3 on ICICLE: witness-generation
 
 In this repository, we present an integration of the ICICLE field library (rust wrappers) for trace generation and symbolic constraints for AIR arithmetization using the Plonky3 framework. This enables users to
 
