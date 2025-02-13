@@ -1,0 +1,22 @@
+[workspace]
+resolver = "2"
+members = ["icicle-blake3-air", "icicle-trace", "icicle-keccak-air"]
+
+[workspace.dependencies]
+blake3 = "1.5"
+icicle-runtime = { git = "https://github.com/ingonyama-zk/icicle.git", rev = "505ee499c00cd07150803d1c4ed319fbb251a15f" }
+icicle-core = { git = "https://github.com/ingonyama-zk/icicle.git", rev = "505ee499c00cd07150803d1c4ed319fbb251a15f" }
+icicle-babybear = { git = "https://github.com/ingonyama-zk/icicle.git", rev = "505ee499c00cd07150803d1c4ed319fbb251a15f" }
+icicle-hash = { git = "https://github.com/ingonyama-zk/icicle.git", rev = "505ee499c00cd07150803d1c4ed319fbb251a15f" }
+
+rand = "0.8.5"
+rayon = "1.7.0"
+tracing-subscriber = { version = "0.3.17", features = ["std", "env-filter"] }
+tracing-forest = { version = "0.1.6", features = ["ansi", "smallvec"] }
+tracing = "0.1"
+itertools = "0.14.0"
+
+# Local dependencies
+icicle-trace = { path = "icicle-trace", version = "0.1.0" }
+icicle-blake3-air = { path = "icicle-blake3-air", version = "0.1.0" }
+icicle-keccak-air = { path = "icicle-keccak-air", version = "0.1.0" }

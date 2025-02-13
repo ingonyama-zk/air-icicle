@@ -1,0 +1,27 @@
+[package]
+name = "icicle-blake3-air"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+icicle-trace.workspace = true
+icicle-runtime.workspace = true
+icicle-core.workspace = true
+icicle-babybear.workspace = true
+icicle-hash.workspace = true
+
+itertools.workspace = true
+rand.workspace = true
+tracing.workspace = true
+rayon.workspace = true
+
+
+p3-matrix = { git = "https://github.com/Plonky3/Plonky3" }
+
+[dev-dependencies]
+criterion = "0.5.1"
+
+[[bench]]
+name = "benchmark"
+harness = false
