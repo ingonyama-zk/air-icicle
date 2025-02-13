@@ -1,3 +1,7 @@
+// This file is based on Plonky3 (https://github.com/Plonky3/Plonky3.git)
+// Original authors: Plonky3 authors, 2022
+// Modifications by Ingonyama, 2025
+
 use alloc::vec;
 use alloc::vec::Vec;
 use core::array;
@@ -6,11 +10,7 @@ use core::mem::transmute;
 
 use icicle_core::traits::{Arithmetic, FieldImpl};
 use icicle_trace::utils::{u64_to_16_bit_limbs, u64_to_bits_le};
-// use p3_air::utils::{u64_to_16_bit_limbs, u64_to_bits_le};
-// use p3_field::PrimeField64;
 use p3_matrix::dense::RowMajorMatrix;
-// use p3_maybe_rayon::iter::repeat;
-// use p3_maybe_rayon::prelude::*;
 use tracing::instrument;
 
 use crate::columns::{KeccakCols, NUM_KECCAK_COLS};

@@ -1,3 +1,7 @@
+// This file is based on Plonky3 (https://github.com/Plonky3/Plonky3.git)
+// Original authors: Plonky3 authors, 2022
+// Modifications by Ingonyama, 2025
+
 extern crate std;
 use core::cmp;
 use core::fmt::{Debug, Display, Formatter};
@@ -162,53 +166,9 @@ impl<F: FieldImpl + Arithmetic> From<F> for SymbolicExpression<F> {
 }
 
 impl<F: FieldImpl + Arithmetic> SymbolicExpression<F> {
-    // type F = F;
-
-    // const ZERO: Self = Self::Constant(F::ZERO);
-    // const ONE: Self = Self::Constant(F::ONE);
-    // const TWO: Self = Self::Constant(F::TWO);
-    // const NEG_ONE: Self = Self::Constant(F::NEG_ONE);
-
-    #[inline]
-    // fn from_f(f: Self::F) -> Self {
-    //     f.into()
-    // }
-
-    fn from_bool(b: bool) -> Self {
-        if b {
-            Self::Constant(F::one())
-        } else {
-            Self::Constant(F::zero())
-        }
-    }
-
-    // fn from_canonical_u8(n: u8) -> Self {
-    //     Self::Constant(F::from_canonical_u8(n))
-    // }
-
-    // fn from_canonical_u16(n: u16) -> Self {
-    //     Self::Constant(F::from_canonical_u16(n))
-    // }
-
     fn from_canonical_u32(n: u32) -> Self {
         Self::Constant(F::from_u32(n))
     }
-
-    // fn from_canonical_u64(n: u64) -> Self {
-    //     Self::Constant(F::from_canonical_u64(n))
-    // }
-
-    // fn from_canonical_usize(n: usize) -> Self {
-    //     Self::Constant(F::from_canonical_usize(n))
-    // }
-
-    // fn from_wrapped_u32(n: u32) -> Self {
-    //     Self::Constant(F::from_wrapped_u32(n))
-    // }
-
-    // fn from_wrapped_u64(n: u64) -> Self {
-    //     Self::Constant(F::from_wrapped_u64(n))
-    // }
 }
 
 impl<F: FieldImpl + Arithmetic, T> Add<T> for SymbolicExpression<F>

@@ -1,13 +1,14 @@
+// This file is based on Plonky3 (https://github.com/Plonky3/Plonky3.git)
+// Original authors: Plonky3 authors, 2022
+// Modifications by Ingonyama, 2025
+
 use alloc::vec;
 use alloc::vec::Vec;
 use core::array;
 use icicle_core::traits::{Arithmetic, FieldImpl};
 
 use icicle_trace::utils::u32_to_bits_le;
-// use p3_air::utils::u32_to_bits_le;
-// use p3_field::{FieldAlgebra, PrimeField64};
 use p3_matrix::dense::RowMajorMatrix;
-// use p3_maybe_rayon::prelude::*;
 use rayon::prelude::*;
 use tracing::instrument;
 

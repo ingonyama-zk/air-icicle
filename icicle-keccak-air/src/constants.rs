@@ -1,3 +1,7 @@
+// This file is based on Plonky3 (https://github.com/Plonky3/Plonky3.git)
+// Original authors: Plonky3 authors, 2022
+// Modifications by Ingonyama, 2025
+
 pub(crate) const R: [[u8; 5]; 5] = [
     [0, 36, 3, 41, 18],
     [1, 44, 10, 45, 2],

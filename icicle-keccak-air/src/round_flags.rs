@@ -1,3 +1,7 @@
+// This file is based on Plonky3 (https://github.com/Plonky3/Plonky3.git)
+// Original authors: Plonky3 authors, 2022
+// Modifications by Ingonyama, 2025
+
 use core::borrow::Borrow;
 
 use icicle_trace::AirBuilder;

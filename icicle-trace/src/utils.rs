@@ -1,8 +1,10 @@
 //! A collection of utility functions helpful in defining AIR's.
 
-use core::array;
+// This file is based on Plonky3 (https://github.com/Plonky3/Plonky3.git)
+// Original authors: Plonky3 authors, 2022
+// Modifications by Ingonyama, 2025
 
-//use p3_field::{Field, FieldAlgebra};
+use core::array;
 
 use icicle_core::traits::{Arithmetic, FieldImpl};
 

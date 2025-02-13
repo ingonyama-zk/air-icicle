@@ -1,10 +1,10 @@
+// This file is based on Plonky3 (https://github.com/Plonky3/Plonky3.git)
+// Original authors: Plonky3 authors, 2022
+// Modifications by Ingonyama, 2025
+
 use alloc::vec::Vec;
 use core::borrow::Borrow;
 use icicle_trace::utils::{andn, xor, xor3};
-
-// use p3_air::utils::{andn, xor, xor3};
-// use p3_air::{Air, AirBuilder, BaseAir};
-// use p3_field::{PrimeCharacteristicRing, PrimeField64};
 
 use icicle_core::traits::{Arithmetic, FieldImpl};
 use icicle_trace::{Air, AirBuilder, BaseAir};

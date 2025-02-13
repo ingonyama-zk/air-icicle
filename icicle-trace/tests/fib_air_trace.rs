@@ -1,16 +1,12 @@
+use p3_air::{Air, AirBuilder, AirBuilderWithPublicValues, BaseAir};
 use std::borrow::Borrow;
 
-//use plonky3_air::{Air, AirBuilder, AirBuilderWithPublicValues, BaseAir};
-use p3_air::{Air, AirBuilder, AirBuilderWithPublicValues, BaseAir};
-
 use p3_baby_bear::BabyBear;
-use p3_field::{integers::QuotientMap, Field, PrimeField64};
+use p3_field::{integers::QuotientMap, PrimeField64};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 
-//use plonky3_air::{symbolic_builder::get_symbolic_constraints,symbolic_expression::SymbolicExpression,check_constraints};
 use p3_uni_stark::{get_symbolic_constraints, SymbolicExpression};
-
 
 /// For testing the public values feature
 pub struct FibonacciAir {}
@@ -61,7 +57,9 @@ pub fn generate_trace_rows<F: PrimeField64>(a: u64, b: u64, n: usize) -> RowMajo
     assert!(suffix.is_empty(), "Alignment should match");
     assert_eq!(rows.len(), n);
 
-    rows[0] = FibonacciRow::new(unsafe { F::from_canonical_unchecked(a) }, unsafe { F::from_canonical_unchecked(b) });
+    rows[0] = FibonacciRow::new(unsafe { F::from_canonical_unchecked(a) }, unsafe {
+        F::from_canonical_unchecked(b)
+    });
 
     for i in 1..n {
         rows[i].left = rows[i - 1].right;
@@ -106,23 +104,22 @@ fn test_trace(n: usize, x: u64) {
         BabyBear::from_canonical_checked(1).unwrap(),
         BabyBear::from_canonical_checked(x).unwrap(),
     ];
-    println!("Trace {:#?}",trace);
-    let symbolic_constraints = get_symbolic_constraints::<BabyBear, FibonacciAir>(&FibonacciAir {}, 0, pis.len());
-    println!("symbolic constraints {:#?}",symbolic_constraints);
-    
+    println!("Trace {:#?}", trace);
+    let symbolic_constraints =
+        get_symbolic_constraints::<BabyBear, FibonacciAir>(&FibonacciAir {}, 0, pis.len());
+    println!("symbolic constraints {:#?}", symbolic_constraints);
+
     let constraint_count = symbolic_constraints.len();
     let constraint_degree = symbolic_constraints
         .iter()
         .map(SymbolicExpression::degree_multiple)
         .max()
         .unwrap_or(0);
-    println!("Constraint count: {:#?}",constraint_count);
-    println!("Constraint degree: {:#?}",constraint_degree);
+    println!("Constraint count: {:#?}", constraint_count);
+    println!("Constraint degree: {:#?}", constraint_degree);
     let degree = trace.height();
-    println!("Trace eval domain: {:#?}",degree);
+    println!("Trace eval domain: {:#?}", degree);
 }
-
-
 
 //run after commenting out lib
 

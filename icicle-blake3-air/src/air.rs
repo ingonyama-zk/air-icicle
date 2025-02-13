@@ -1,3 +1,7 @@
+// This file is based on Plonky3 (https://github.com/Plonky3/Plonky3.git)
+// Original authors: Plonky3 authors, 2022
+// Modifications by Ingonyama, 2025
+
 use alloc::vec::Vec;
 use core::borrow::Borrow;
 
@@ -5,7 +9,6 @@ use icicle_core::traits::{Arithmetic, FieldImpl};
 use icicle_trace::utils::{add2, add3, pack_bits_le, xor, xor_32_shift};
 use icicle_trace::{Air, AirBuilder, BaseAir};
 use itertools::izip;
-// use p3_field::{FieldAlgebra, PrimeField64};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 use rand::random;

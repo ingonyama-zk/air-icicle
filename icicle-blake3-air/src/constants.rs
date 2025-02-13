@@ -1,3 +1,7 @@
+// This file is based on Plonky3 (https://github.com/Plonky3/Plonky3.git)
+// Original authors: Plonky3 authors, 2022
+// Modifications by Ingonyama, 2025
+
 pub const BITS_PER_LIMB: usize = 16;
 pub const U32_LIMBS: usize = 32 / BITS_PER_LIMB;
 
