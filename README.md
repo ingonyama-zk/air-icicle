@@ -29,7 +29,7 @@ cargo run --package icicle-keccak-air --example keccak_icicle_trace_sym
 cargo bench
 ```
 
-These results can be accessed from here (repo). In order for this integration to be functional we had to redefine some properties of the Field trait in ICICLE, and the ICICLE branch used for this purpose can be accesed in the [p3 branch](https://github.com/ingonyama-zk/icicle/tree/p3) of the ICICLE repository.
+In order for this integration to be functional we had to redefine some properties of the Field trait in ICICLE, and the ICICLE branch used for this purpose can be accesed in the [p3 branch](https://github.com/ingonyama-zk/icicle/tree/p3) of the ICICLE repository.
 
 The trace will still run on a GPU due to ICICLE device agnostic API's. Note however it is not yet optimized for this purpose. Nevertheless in order to run the benches on the GPU download the [CUDA backend release 3.4](https://github.com/ingonyama-zk/icicle/releases/tag/v3.4.0) and install it in the '
 `cuda_backend` folder in the repo.
