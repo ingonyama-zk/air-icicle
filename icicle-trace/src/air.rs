@@ -34,18 +34,24 @@ pub trait Air<AB: AirBuilder>: BaseAir<AB::F> {
 pub trait AirBuilder: Sized {
     type F: FieldImpl;
 
-    type Expr: FieldImpl
-        + Arithmetic
+    type Expr: Clone
+        + Send
+        + Sync
         + From<Self::F>
-        + Add<Self::Var, Output = Self::Expr>
+        + From<Self::Var>
+        + Add<Self::Expr, Output = Self::Expr>
         + Add<Self::F, Output = Self::Expr>
-        + Sub<Self::Var, Output = Self::Expr>
+        + Add<Self::Var, Output = Self::Expr>
+        + Sub<Self::Expr, Output = Self::Expr>
         + Sub<Self::F, Output = Self::Expr>
-        + Mul<Self::Var, Output = Self::Expr>
-        + Mul<Self::F, Output = Self::Expr>;
+        + Sub<Self::Var, Output = Self::Expr>
+        + Mul<Self::Expr, Output = Self::Expr>
+        + Mul<Self::F, Output = Self::Expr>
+        + Mul<Self::Var, Output = Self::Expr>;
 
     type Var: Into<Self::Expr>
         + Clone
+        + Copy
         + Send
         + Sync
         + Add<Self::F, Output = Self::Expr>
@@ -83,7 +89,9 @@ pub trait AirBuilder: Sized {
         x: I1,
         y: I2,
     ) -> FilteredAirBuilder<'_, Self> {
-        self.when(x.into() - y.into())
+        let x_expr = x.into();
+        let y_expr = y.into();
+        self.when(x_expr - y_expr)
     }
 
     /// Returns a sub-builder whose constraints are enforced only on the first row.
@@ -106,13 +114,21 @@ pub trait AirBuilder: Sized {
         self.when(self.is_transition_window(size))
     }
 
+    /// Get a constant expression representing zero.
+    fn zero(&self) -> Self::Expr;
+    /// Get a constant expression representing one.
+    fn one(&self) -> Self::Expr;
+    /// Get a constant expression representing two.
+    fn two(&self) -> Self::Expr {
+        self.one() + self.one()
+    }
+    /// Get a constant expression from a u32.
+    fn from_u32(&self, val: u32) -> Self::Expr;
+
     fn assert_zero<I: Into<Self::Expr>>(&mut self, x: I);
 
-    // fn assert_one<I: Into<Self::Expr>>(&mut self, x: I) {
-    //     self.assert_zero(x.into() - Self::Expr::ONE);
-    // }
     fn assert_one<I: Into<Self::Expr>>(&mut self, x: I) {
-        self.assert_zero(x.into() - Self::Expr::one());
+        self.assert_zero(x.into() - self.one());
     }
 
     fn assert_eq<I1: Into<Self::Expr>, I2: Into<Self::Expr>>(&mut self, x: I1, y: I2) {
@@ -122,14 +138,78 @@ pub trait AirBuilder: Sized {
     /// Assert that `x` is a boolean, i.e. either 0 or 1.
     fn assert_bool<I: Into<Self::Expr>>(&mut self, x: I) {
         let x = x.into();
-        self.assert_zero(x.clone() * (x - Self::Expr::one()));
+        self.assert_zero(x.clone() * (x - self.one()));
     }
 
     /// Assert that `x` is ternary, i.e. either 0, 1 or 2.
     fn assert_tern<I: Into<Self::Expr>>(&mut self, x: I) {
         let x = x.into();
-        let two = Self::Expr::one() + Self::Expr::one();
-        self.assert_zero(x.clone() * (x.clone() - Self::Expr::one()) * (x - two));
+        let one = self.one();
+        let two = self.two();
+        self.assert_zero(x.clone() * (x.clone() - one) * (x - two));
+    }
+
+    /// Pack a collection of bits into a number.
+    ///
+    /// Given vec = [v0, v1, ..., v_n] returns v0 + 2v_1 + ... + 2^n v_n
+    #[inline]
+    fn pack_bits_le<I>(&self, iter: I) -> Self::Expr
+    where
+        I: DoubleEndedIterator,
+        I::Item: Into<Self::Expr>,
+    {
+        let mut output = self.zero();
+        let two = self.two();
+        for elem in iter.rev() {
+            output = output.clone() * two.clone(); // Use clone if Expr doesn't impl Copy
+            output = output + elem.into();
+        }
+        output
+    }
+
+    /// Computes the arithmetic generalization of boolean `xor`.
+    ///
+    /// For boolean inputs, `x ^ y = x + y - 2 xy`.
+    #[inline(always)]
+    fn xor<X, Y>(&self, x: X, y: Y) -> Self::Expr
+    where
+        X: Into<Self::Expr>,
+        Y: Into<Self::Expr>,
+    {
+        let x = x.into();
+        let y = y.into();
+        let two = self.two();
+        x.clone() + y.clone() - two * x * y
+    }
+
+    /// Computes the arithmetic generalization of a triple `xor`.
+    ///
+    /// For boolean inputs `x ^ y ^ z = x + y + z - 2(xy + xz + yz) + 4xyz`.
+    #[inline(always)]
+    fn xor3<X, Y, Z>(&self, x: X, y: Y, z: Z) -> Self::Expr
+    where
+        X: Into<Self::Expr>,
+        Y: Into<Self::Expr>,
+        Z: Into<Self::Expr>,
+    {
+        // The cheapest way to implement this polynomial is to simply apply xor twice.
+        // This costs 2 adds, 2 subs, 2 muls and 2 doubles.
+        self.xor(x, self.xor(y, z))
+    }
+
+    /// Computes the arithmetic generalization of `andnot`.
+    ///
+    /// For boolean inputs `(!x) & y = (1 - x)y`
+    #[inline(always)]
+    fn andn<X, Y>(&self, x: X, y: Y) -> Self::Expr
+    where
+        X: Into<Self::Expr>,
+        Y: Into<Self::Expr>,
+    {
+        let one = self.one();
+        let x = x.into();
+        let y = y.into();
+        (one - x) * y
     }
 }
 
@@ -153,60 +233,45 @@ impl<AB: AirBuilder> FilteredAirBuilder<'_, AB> {
     pub fn condition(&self) -> AB::Expr {
         self.condition.clone()
     }
-}
 
-impl<AB: AirBuilder> AirBuilder for FilteredAirBuilder<'_, AB> {
-    type F = AB::F;
-    type Expr = AB::Expr;
-    type Var = AB::Var;
-    type M = AB::M;
-
-    fn main(&self) -> Self::M {
+    pub fn main(&self) -> AB::M {
         self.inner.main()
     }
 
-    fn is_first_row(&self) -> Self::Expr {
+    pub fn is_first_row(&self) -> AB::Expr {
         self.inner.is_first_row()
     }
 
-    fn is_last_row(&self) -> Self::Expr {
+    pub fn is_last_row(&self) -> AB::Expr {
         self.inner.is_last_row()
     }
 
-    fn is_transition_window(&self, size: usize) -> Self::Expr {
+    pub fn is_transition_window(&self, size: usize) -> AB::Expr {
         self.inner.is_transition_window(size)
     }
 
-    fn assert_zero<I: Into<Self::Expr>>(&mut self, x: I) {
+    pub fn zero(&self) -> AB::Expr {
+        self.inner.zero()
+    }
+    pub fn one(&self) -> AB::Expr {
+        self.inner.one()
+    }
+    pub fn two(&self) -> AB::Expr {
+        self.inner.two()
+    }
+    pub fn from_u32(&self, val: u32) -> AB::Expr {
+        self.inner.from_u32(val)
+    }
+
+    pub fn assert_zero<I: Into<AB::Expr>>(&mut self, x: I) {
         self.inner.assert_zero(self.condition() * x.into());
     }
+
+    pub fn assert_eq<I1: Into<AB::Expr>, I2: Into<AB::Expr>>(&mut self, x: I1, y: I2) {
+        self.assert_zero(x.into() - y.into());
+    }
+
+    pub fn assert_one<I: Into<AB::Expr>>(&mut self, x: I) {
+        self.assert_zero(x.into() - self.one());
+    }
 }
-
-//cant do this without extensiont trait
-// impl<AB: ExtensionBuilder> ExtensionBuilder for FilteredAirBuilder<'_, AB> {
-//     type EF = AB::EF;
-//     type ExprEF = AB::ExprEF;
-//     type VarEF = AB::VarEF;
-
-//     fn assert_zero_ext<I>(&mut self, x: I)
-//     where
-//         I: Into<Self::ExprEF>,
-//     {
-//         self.inner.assert_zero_ext(x.into() * self.condition());
-//     }
-// }
-
-//cant do this without extension trait
-// impl<AB: PermutationAirBuilder> PermutationAirBuilder for FilteredAirBuilder<'_, AB> {
-//     type MP = AB::MP;
-
-//     type RandomVar = AB::RandomVar;
-
-//     fn permutation(&self) -> Self::MP {
-//         self.inner.permutation()
-//     }
-
-//     fn permutation_randomness(&self) -> &[Self::RandomVar] {
-//         self.inner.permutation_randomness()
-//     }
-// }

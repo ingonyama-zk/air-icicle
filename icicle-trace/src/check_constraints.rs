@@ -91,6 +91,16 @@ where
         }
     }
 
+    fn zero(&self) -> Self::Expr {
+        F::zero()
+    }
+    fn one(&self) -> Self::Expr {
+        F::one()
+    }
+    fn from_u32(&self, val: u32) -> Self::Expr {
+        F::from_u32(val)
+    }
+
     fn assert_zero<I: Into<Self::Expr>>(&mut self, x: I) {
         assert_eq!(
             x.into(),

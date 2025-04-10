@@ -136,6 +136,16 @@ impl<F: FieldImpl + Arithmetic> AirBuilder for SymbolicAirBuilder<F> {
         }
     }
 
+    fn zero(&self) -> Self::Expr {
+        SymbolicExpression::zero()
+    }
+    fn one(&self) -> Self::Expr {
+        SymbolicExpression::one()
+    }
+    fn from_u32(&self, val: u32) -> Self::Expr {
+        SymbolicExpression::from_u32(val)
+    }
+
     fn assert_zero<I: Into<Self::Expr>>(&mut self, x: I) {
         self.constraints.push(x.into());
     }

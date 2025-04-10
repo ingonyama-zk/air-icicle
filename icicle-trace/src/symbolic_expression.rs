@@ -67,6 +67,18 @@ impl<F: FieldImpl + Arithmetic> SymbolicExpression<F> {
             } => *degree_multiple,
         }
     }
+
+    pub fn zero() -> Self {
+        Self::Constant(F::zero())
+    }
+
+    pub fn one() -> Self {
+        Self::Constant(F::one())
+    }
+
+    pub fn from_u32(val: u32) -> Self {
+        Self::Constant(F::from_u32(val))
+    }
 }
 
 impl<F: FieldImpl + Arithmetic + Display> Display for SymbolicExpression<F> {
@@ -85,74 +97,6 @@ impl<F: FieldImpl + Arithmetic + Display> Display for SymbolicExpression<F> {
     }
 }
 
-impl<F: FieldImpl + Arithmetic> FieldImpl for SymbolicExpression<F> {
-    type Config = F::Config;
-    type Repr = F::Repr;
-
-    fn to_bytes_le(&self) -> Vec<u8> {
-        match self {
-            Self::Constant(f) => f.to_bytes_le(),
-            _ => panic!("Cannot convert symbolic expression to bytes"),
-        }
-    }
-
-    fn from_bytes_le(bytes: &[u8]) -> Self {
-        Self::Constant(F::from_bytes_le(bytes))
-    }
-
-    fn from_hex(s: &str) -> Self {
-        Self::Constant(F::from_hex(s))
-    }
-
-    fn zero() -> Self {
-        Self::Constant(F::zero())
-    }
-
-    fn one() -> Self {
-        Self::Constant(F::one())
-    }
-
-    fn from_u32(val: u32) -> Self {
-        Self::Constant(F::from_u32(val))
-    }
-
-    fn from_repr(repr: Self::Repr) -> Self {
-        Self::Constant(F::from_repr(repr))
-    }
-}
-
-impl<F: FieldImpl + Arithmetic> Arithmetic for SymbolicExpression<F> {
-    fn sqr(self) -> Self {
-        // Square is equivalent to multiplying by self
-        // Degree multiple doubles because we're multiplying by self
-        let degree_multiple = self.degree_multiple() * 2;
-        Self::Mul {
-            x: Arc::new(self.clone()),
-            y: Arc::new(self),
-            degree_multiple,
-        }
-    }
-
-    fn inv(self) -> Self {
-        // For symbolic expressions, we might need to handle this specially
-        // You might want to add an Inv variant to your SymbolicExpression enum
-        todo!("Implement inverse for symbolic expressions")
-    }
-
-    fn pow(self, exp: usize) -> Self {
-        match exp {
-            0 => Self::Constant(F::one()),
-            1 => self,
-            2 => self.sqr(),
-            _ => {
-                // For higher powers, we can use the square-and-multiply algorithm
-                // but for symbolic expressions, you might want to add a Pow variant
-                todo!("Implement pow for symbolic expressions")
-            }
-        }
-    }
-}
-
 impl<F: FieldImpl + Arithmetic> Default for SymbolicExpression<F> {
     fn default() -> Self {
         Self::Constant(F::zero())
@@ -165,12 +109,6 @@ impl<F: FieldImpl + Arithmetic> From<F> for SymbolicExpression<F> {
     }
 }
 
-impl<F: FieldImpl + Arithmetic> SymbolicExpression<F> {
-    fn from_canonical_u32(n: u32) -> Self {
-        Self::Constant(F::from_u32(n))
-    }
-}
-
 impl<F: FieldImpl + Arithmetic, T> Add<T> for SymbolicExpression<F>
 where
     T: Into<Self>,
@@ -179,6 +117,17 @@ where
 
     fn add(self, rhs: T) -> Self {
         let rhs = rhs.into();
+        if let Self::Constant(c) = &self {
+            if c == &F::zero() {
+                return rhs;
+            }
+        }
+        if let Self::Constant(c) = &rhs {
+            if c == &F::zero() {
+                return self;
+            }
+        }
+
         match (self, rhs) {
             (Self::Constant(lhs), Self::Constant(rhs)) => Self::Constant(lhs + rhs),
             (lhs, rhs) => {
@@ -208,8 +157,7 @@ where
 {
     fn sum<I: Iterator<Item = T>>(iter: I) -> Self {
         iter.map(Into::into)
-            .reduce(|x, y| x + y)
-            .unwrap_or(Self::from_canonical_u32(0))
+            .fold(Self::zero(), |x, y| x + y)
     }
 }
 
@@ -221,6 +169,12 @@ where
 
     fn sub(self, rhs: T) -> Self {
         let rhs = rhs.into();
+        if let Self::Constant(c) = &rhs {
+            if c == &F::zero() {
+                return self;
+            }
+        }
+
         match (self, rhs) {
             (Self::Constant(lhs), Self::Constant(rhs)) => Self::Constant(lhs - rhs),
             (lhs, rhs) => {
@@ -248,6 +202,11 @@ impl<F: FieldImpl + Arithmetic> Neg for SymbolicExpression<F> {
     type Output = Self;
 
     fn neg(self) -> Self {
+        if let Self::Constant(c) = &self {
+             if c == &F::zero() {
+                 return self;
+             }
+        }
         match self {
             Self::Constant(c) => Self::Constant(F::zero() - c),
             expr => {
@@ -269,6 +228,24 @@ where
 
     fn mul(self, rhs: T) -> Self {
         let rhs = rhs.into();
+
+        if let Self::Constant(c) = &self {
+            if c == &F::one() {
+                return rhs;
+            }
+            if c == &F::zero() {
+                return Self::zero();
+            }
+        }
+         if let Self::Constant(c) = &rhs {
+            if c == &F::one() {
+                return self;
+            }
+             if c == &F::zero() {
+                return Self::zero();
+            }
+        }
+
         match (self, rhs) {
             (Self::Constant(lhs), Self::Constant(rhs)) => Self::Constant(lhs * rhs),
             (lhs, rhs) => {
@@ -299,7 +276,6 @@ where
 {
     fn product<I: Iterator<Item = T>>(iter: I) -> Self {
         iter.map(Into::into)
-            .reduce(|x, y| x * y)
-            .unwrap_or(Self::Constant(F::from_u32(1)))
+            .fold(Self::one(), |x, y| x * y)
     }
 }
