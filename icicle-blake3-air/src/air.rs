@@ -6,7 +6,7 @@ use alloc::vec::Vec;
 use core::borrow::Borrow;
 
 use icicle_core::traits::{Arithmetic, FieldImpl};
-use icicle_trace::utils::{add2, add3, pack_bits_le, xor, xor_32_shift};
+use icicle_trace::utils::{add2, add3, xor_32_shift};
 use icicle_trace::{Air, AirBuilder, BaseAir};
 use itertools::izip;
 use p3_matrix::dense::RowMajorMatrix;
@@ -43,8 +43,8 @@ impl Blake3Air {
     ) {
         // We need to pack some bits together to verify the additions.
         // First we verify a' = a + b + m_{2i} mod 2^32
-        let b_0_16 = pack_bits_le(trace.b[..BITS_PER_LIMB].iter().cloned());
-        let b_16_32 = pack_bits_le(trace.b[BITS_PER_LIMB..].iter().cloned());
+        let b_0_16 = builder.pack_bits_le(trace.b[..BITS_PER_LIMB].iter().cloned());
+        let b_16_32 = builder.pack_bits_le(trace.b[BITS_PER_LIMB..].iter().cloned());
 
         add3(
             builder,
@@ -59,8 +59,8 @@ impl Blake3Air {
         xor_32_shift(builder, trace.a_prime, trace.d, trace.d_prime, 16);
 
         // Next we verify c' = c + d' mod 2^32
-        let d_prime_0_16 = pack_bits_le(trace.d_prime[..BITS_PER_LIMB].iter().cloned());
-        let d_prime_16_32 = pack_bits_le(trace.d_prime[BITS_PER_LIMB..].iter().cloned());
+        let d_prime_0_16 = builder.pack_bits_le(trace.d_prime[..BITS_PER_LIMB].iter().cloned());
+        let d_prime_16_32 = builder.pack_bits_le(trace.d_prime[BITS_PER_LIMB..].iter().cloned());
         add2(
             builder,
             trace.c_prime,
@@ -73,8 +73,8 @@ impl Blake3Air {
         xor_32_shift(builder, trace.c_prime, trace.b, trace.b_prime, 12);
 
         // Next we verify a'' = a' + b' + m_{2i + 1} mod 2^32
-        let b_prime_0_16 = pack_bits_le(trace.b_prime[..BITS_PER_LIMB].iter().cloned());
-        let b_prime_16_32 = pack_bits_le(trace.b_prime[BITS_PER_LIMB..].iter().cloned());
+        let b_prime_0_16 = builder.pack_bits_le(trace.b_prime[..BITS_PER_LIMB].iter().cloned());
+        let b_prime_16_32 = builder.pack_bits_le(trace.b_prime[BITS_PER_LIMB..].iter().cloned());
 
         add3(
             builder,
@@ -90,8 +90,8 @@ impl Blake3Air {
         xor_32_shift(builder, trace.a_output, trace.d_prime, trace.d_output, 8);
 
         // Next we verify c'' = c' + d'' mod 2^32
-        let d_output_0_16 = pack_bits_le(trace.d_output[..BITS_PER_LIMB].iter().cloned());
-        let d_output_16_32 = pack_bits_le(trace.d_output[BITS_PER_LIMB..].iter().cloned());
+        let d_output_0_16 = builder.pack_bits_le(trace.d_output[..BITS_PER_LIMB].iter().cloned());
+        let d_output_16_32 = builder.pack_bits_le(trace.d_output[BITS_PER_LIMB..].iter().cloned());
         add2(
             builder,
             trace.c_output,
@@ -264,8 +264,8 @@ impl<AB: AirBuilder> Air<AB> for Blake3Air {
             .iter()
             .zip(local.initial_row0.iter())
             .for_each(|(bits, word)| {
-                let low_16 = pack_bits_le(bits[..BITS_PER_LIMB].iter().cloned());
-                let hi_16 = pack_bits_le(bits[BITS_PER_LIMB..].iter().cloned());
+                let low_16 = builder.pack_bits_le(bits[..BITS_PER_LIMB].iter().cloned());
+                let hi_16 = builder.pack_bits_le(bits[BITS_PER_LIMB..].iter().cloned());
                 builder.assert_eq(low_16, word[0].clone());
                 builder.assert_eq(hi_16, word[1].clone());
             });
@@ -276,14 +276,14 @@ impl<AB: AirBuilder> Air<AB> for Blake3Air {
             .iter()
             .zip(IV)
             .for_each(|(row_elem, constant)| {
-                builder.assert_eq(row_elem[0].clone(), AB::Expr::from_u32(constant[0]));
-                builder.assert_eq(row_elem[1].clone(), AB::Expr::from_u32(constant[1]));
+                builder.assert_eq(row_elem[0].clone(), builder.from_u32(constant[0]));
+                builder.assert_eq(row_elem[1].clone(), builder.from_u32(constant[1]));
             });
 
         let mut m_values: [[AB::Expr; 2]; 16] = local.inputs.clone().map(|bits| {
             [
-                pack_bits_le(bits[..BITS_PER_LIMB].iter().cloned()),
-                pack_bits_le(bits[BITS_PER_LIMB..].iter().cloned()),
+                builder.pack_bits_le(bits[..BITS_PER_LIMB].iter().cloned()),
+                builder.pack_bits_le(bits[BITS_PER_LIMB..].iter().cloned()),
             ]
         });
 
@@ -376,8 +376,8 @@ impl<AB: AirBuilder> Air<AB> for Blake3Air {
             .iter()
             .zip(local.full_rounds[6].state_output.row2.iter())
             .for_each(|(bits, word)| {
-                let low_16 = pack_bits_le(bits[..BITS_PER_LIMB].iter().cloned());
-                let hi_16 = pack_bits_le(bits[BITS_PER_LIMB..].iter().cloned());
+                let low_16 = builder.pack_bits_le(bits[..BITS_PER_LIMB].iter().cloned());
+                let hi_16 = builder.pack_bits_le(bits[BITS_PER_LIMB..].iter().cloned());
                 builder.assert_eq(low_16, word[0].clone());
                 builder.assert_eq(hi_16, word[1].clone());
             });
@@ -412,7 +412,7 @@ impl<AB: AirBuilder> Air<AB> for Blake3Air {
             local.full_rounds[6].state_output.row3.clone()
         ) {
             for (out_bit, left_bit, right_bit) in izip!(out_bits, left_bits, right_bits) {
-                builder.assert_eq(out_bit, xor(left_bit.into(), right_bit.into()));
+                builder.assert_eq(out_bit, builder.xor(left_bit.into(), right_bit.into()));
             }
         }
 
@@ -428,7 +428,7 @@ impl<AB: AirBuilder> Air<AB> for Blake3Air {
             local.final_round_helpers.clone()
         ) {
             for (out_bit, left_bit, right_bit) in izip!(out_bits, left_bits, right_bits) {
-                builder.assert_eq(out_bit, xor(left_bit.into(), right_bit.into()));
+                builder.assert_eq(out_bit, builder.xor(left_bit.into(), right_bit.into()));
             }
         }
 
@@ -441,7 +441,7 @@ impl<AB: AirBuilder> Air<AB> for Blake3Air {
             local.full_rounds[6].state_output.row3.clone()
         ) {
             for (out_bit, left_bit, right_bit) in izip!(out_bits, left_bits, right_bits) {
-                builder.assert_eq(out_bit, xor(left_bit.into(), right_bit.into()));
+                builder.assert_eq(out_bit, builder.xor(left_bit.into(), right_bit.into()));
             }
         }
     }

@@ -10,71 +10,6 @@ use icicle_core::traits::{Arithmetic, FieldImpl};
 
 use crate::AirBuilder;
 
-/// Pack a collection of bits into a number.
-///
-/// Given vec = [v0, v1, ..., v_n] returns v0 + 2v_1 + ... + 2^n v_n
-#[inline]
-pub fn pack_bits_le<FA, Var, I>(iter: I) -> FA
-where
-    FA: FieldImpl + Arithmetic,
-    Var: Into<FA> + Clone,
-    I: DoubleEndedIterator<Item = Var>,
-{
-    let mut output = FA::zero();
-    for elem in iter.rev() {
-        output = output.clone() + output;
-        output = output + elem.clone().into();
-    }
-    output
-}
-
-/// Computes the arithmetic generalization of boolean `xor`.
-///
-/// For boolean inputs, `x ^ y = x + y - 2 xy`.
-#[inline(always)]
-pub fn xor<FA: FieldImpl + Arithmetic>(x: FA, y: FA) -> FA {
-    x.clone() + y.clone() - x * (y.clone() + y)
-}
-
-/// Computes the arithmetic generalization of a triple `xor`.
-///
-/// For boolean inputs `x ^ y ^ z = x + y + z - 2(xy + xz + yz) + 4xyz`.
-#[inline(always)]
-pub fn xor3<FA: FieldImpl + Arithmetic>(x: FA, y: FA, z: FA) -> FA {
-    // The cheapest way to implement this polynomial is to simply apply xor twice.
-    // This costs 2 adds, 2 subs, 2 muls and 2 doubles.
-    xor(x, xor(y, z))
-}
-
-/// Computes the arithmetic generalization of `andnot`.
-///
-/// For boolean inputs `(!x) & y = (1 - x)y`
-#[inline(always)]
-pub fn andn<FA: FieldImpl + Arithmetic>(x: FA, y: FA) -> FA {
-    (FA::one() - x) * y
-}
-
-/// Compute `xor` on a list of boolean field elements.
-///
-/// Verifies at debug time that all inputs are boolean.
-#[inline(always)]
-pub fn checked_xor<F: FieldImpl + Arithmetic, const N: usize>(xs: [F; N]) -> F {
-    xs.into_iter().fold(F::zero(), |acc, x| {
-        debug_assert!(x == F::zero() || x == F::one());
-        xor(acc, x)
-    })
-}
-
-/// Compute `andnot` on a pair of boolean field elements.
-///
-/// Verifies at debug time that both inputs are boolean.
-#[inline(always)]
-pub fn checked_andn<F: FieldImpl + Arithmetic>(x: F, y: F) -> F {
-    debug_assert!(x == F::zero() || x == F::one());
-    debug_assert!(y == F::zero() || y == F::one());
-    andn(x, y)
-}
-
 /// Convert a 32-bit integer into an array of 32 0 or 1 field elements.
 ///
 /// The output array is in little-endian order.
@@ -100,10 +35,10 @@ pub fn u32_to_bits_le<FA: FieldImpl + Arithmetic>(val: u32) -> [FA; 32] {
 #[inline]
 pub fn add3<AB: AirBuilder>(
     builder: &mut AB,
-    a: &[<AB as AirBuilder>::Var; 2],
-    b: &[<AB as AirBuilder>::Var; 2],
-    c: &[<AB as AirBuilder>::Expr; 2],
-    d: &[<AB as AirBuilder>::Expr; 2],
+    a: &[AB::Var; 2],
+    b: &[AB::Var; 2],
+    c: &[AB::Expr; 2],
+    d: &[AB::Expr; 2],
 ) {
     // Define:
     //  acc    = a - b - c - d (mod P)
@@ -132,11 +67,11 @@ pub fn add3<AB: AirBuilder>(
     // over the integers a - b - c - d = 0, -2^32 or -2*2^32 which implies a = b + c + d mod 2^32.
 
     // By assumption P > 3*2^16 so we can safely use from_canonical here.
-    let two_16 = <AB as AirBuilder>::Expr::from_u32(1 << 16);
-    let two_32 = two_16.clone().pow(2);
+    let two_16 = builder.from_u32(1 << 16);
+    let two_32 = two_16.clone() * two_16.clone();
 
-    let acc_16 = a[0].clone() - b[0].clone() - c[0].clone() - d[0].clone();
-    let acc_32 = a[1].clone() - b[1].clone() - c[1].clone() - d[1].clone();
+    let acc_16 = a[0].into() - b[0].into() - c[0].clone() - d[0].clone();
+    let acc_32 = a[1].into() - b[1].into() - c[1].clone() - d[1].clone();
     let acc = acc_16.clone() + two_16.clone() * acc_32;
 
     builder.assert_zero(
@@ -158,9 +93,9 @@ pub fn add3<AB: AirBuilder>(
 #[inline]
 pub fn add2<AB: AirBuilder>(
     builder: &mut AB,
-    a: &[<AB as AirBuilder>::Var; 2],
-    b: &[<AB as AirBuilder>::Var; 2],
-    c: &[<AB as AirBuilder>::Expr; 2],
+    a: &[AB::Var; 2],
+    b: &[AB::Var; 2],
+    c: &[AB::Expr; 2],
 ) {
     // Define:
     //  acc    = a - b - c (mod P)
@@ -189,11 +124,11 @@ pub fn add2<AB: AirBuilder>(
     // over the integers a - b - c = 0 or a - b - c = -2^32 which is equivalent to a = b + c mod 2^32.
 
     // By assumption P > 2^17 so we can safely use from_canonical here.
-    let two_16 = <AB as AirBuilder>::Expr::from_u32(1 << 16);
-    let two_32 = two_16.clone().pow(2);
+    let two_16 = builder.from_u32(1 << 16);
+    let two_32 = two_16.clone() * two_16.clone();
 
-    let acc_16 = a[0].clone() - b[0].clone() - c[0].clone();
-    let acc_32 = a[1].clone() - b[1].clone() - c[1].clone();
+    let acc_16 = a[0].into() - b[0].into() - c[0].clone();
+    let acc_32 = a[1].into() - b[1].into() - c[1].clone();
     let acc = acc_16.clone() + two_16.clone() * acc_32;
 
     builder.assert_zero(acc.clone() * (acc + two_32));
@@ -208,9 +143,9 @@ pub fn add2<AB: AirBuilder>(
 #[inline]
 pub fn xor_32_shift<AB: AirBuilder>(
     builder: &mut AB,
-    a: &[<AB as AirBuilder>::Var; 2],
-    b: &[<AB as AirBuilder>::Var; 32],
-    c: &[<AB as AirBuilder>::Var; 32],
+    a: &[AB::Var; 2],
+    b: &[AB::Var; 32],
+    c: &[AB::Var; 32],
     shift: usize,
 ) {
     // First we range check all elements of c.
@@ -220,21 +155,24 @@ pub fn xor_32_shift<AB: AirBuilder>(
     let xor_shift_c_0_16 = b[..16]
         .iter()
         .enumerate()
-        .map(|(i, elem)| xor(elem.clone().into(), c[(32 + i - shift) % 32].clone().into()));
-    let sum_0_16: <AB as AirBuilder>::Expr = pack_bits_le(xor_shift_c_0_16);
+        .map(|(i, elem)| builder.xor(elem.clone(), c[(32 + i - shift) % 32].clone()));
+    let sum_0_16 = builder.pack_bits_le(xor_shift_c_0_16);
 
-    let xor_shift_c_16_32 = b[16..].iter().enumerate().map(|(i, elem)| {
-        xor(
-            elem.clone().into(),
-            c[(32 + (i + 16) - shift) % 32].clone().into(),
-        )
-    });
-    let sum_16_32: <AB as AirBuilder>::Expr = pack_bits_le(xor_shift_c_16_32);
+    let xor_shift_c_16_32 = b[16..]
+        .iter()
+        .enumerate()
+        .map(|(i, elem)| {
+            builder.xor(
+                elem.clone(),
+                c[(32 + (i + 16) - shift) % 32].clone(),
+            )
+        });
+    let sum_16_32 = builder.pack_bits_le(xor_shift_c_16_32);
 
     // As both b and c have been range checked to be boolean, all the (b ^ (c << shift))
     // are also boolean and so this final check additionally has the effect of range checking a[0], a[1].
-    builder.assert_eq(a[0].clone(), sum_0_16);
-    builder.assert_eq(a[1].clone(), sum_16_32);
+    builder.assert_eq(a[0].into(), sum_0_16);
+    builder.assert_eq(a[1].into(), sum_16_32);
 }
 
 /// Returns `[0, ..., N - 1]`.
