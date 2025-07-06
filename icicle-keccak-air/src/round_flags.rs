@@ -13,9 +13,12 @@ use crate::NUM_ROUNDS;
 #[inline]
 pub(crate) fn eval_round_flags<AB: AirBuilder>(builder: &mut AB) {
     let main = builder.main();
-    let (local, next) = (main.row_slice(0), main.row_slice(1));
-    let local: &KeccakCols<AB::Var> = (*local).borrow();
-    let next: &KeccakCols<AB::Var> = (*next).borrow();
+    let local_option = main.row_slice(0);
+    let next_option = main.row_slice(1);
+    let local_slice = local_option.as_ref().expect("row_slice returned None");
+    let next_slice = next_option.as_ref().expect("row_slice returned None");
+    let local: &KeccakCols<AB::Var> = (**local_slice).borrow();
+    let next: &KeccakCols<AB::Var> = (**next_slice).borrow();
 
     // Initially, the first step flag should be 1 while the others should be 0.
     builder

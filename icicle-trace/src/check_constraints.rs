@@ -30,11 +30,13 @@ where
     (0..height).for_each(|i| {
         let i_next = (i + 1) % height;
 
-        let local = main.row_slice(i);
-        let next = main.row_slice(i_next);
+        let local_binding = main.row_slice(i);
+        let local = local_binding.as_ref().expect("row_slice returned None");
+        let next_binding = main.row_slice(i_next);
+        let next = next_binding.as_ref().expect("row_slice returned None");
         let main = VerticalPair::new(
-            RowMajorMatrixView::new_row(&*local),
-            RowMajorMatrixView::new_row(&*next),
+            RowMajorMatrixView::new_row(&**local),
+            RowMajorMatrixView::new_row(&**next),
         );
 
         let mut builder = DebugConstraintBuilder {

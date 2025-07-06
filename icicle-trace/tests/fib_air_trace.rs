@@ -26,9 +26,12 @@ impl<AB: AirBuilderWithPublicValues> Air<AB> for FibonacciAir {
         let b = pis[1];
         let x = pis[2];
 
-        let (local, next) = (main.row_slice(0), main.row_slice(1));
-        let local: &FibonacciRow<AB::Var> = (*local).borrow();
-        let next: &FibonacciRow<AB::Var> = (*next).borrow();
+        let local_option = main.row_slice(0);
+        let next_option = main.row_slice(1);
+        let local_slice = local_option.as_ref().expect("row_slice returned None");
+        let next_slice = next_option.as_ref().expect("row_slice returned None");
+        let local: &FibonacciRow<AB::Var> = (**local_slice).borrow();
+        let next: &FibonacciRow<AB::Var> = (**next_slice).borrow();
 
         let mut when_first_row = builder.when_first_row();
 

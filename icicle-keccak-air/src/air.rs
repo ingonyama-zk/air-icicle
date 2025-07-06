@@ -44,9 +44,12 @@ impl<AB: AirBuilder> Air<AB> for KeccakAir {
         eval_round_flags(builder);
 
         let main = builder.main();
-        let (local, next) = (main.row_slice(0), main.row_slice(1));
-        let local: &KeccakCols<AB::Var> = (*local).borrow();
-        let next: &KeccakCols<AB::Var> = (*next).borrow();
+        let local_option = main.row_slice(0);
+        let next_option = main.row_slice(1);
+        let local_slice = local_option.as_ref().expect("row_slice returned None");
+        let next_slice = next_option.as_ref().expect("row_slice returned None");
+        let local: &KeccakCols<AB::Var> = (**local_slice).borrow();
+        let next: &KeccakCols<AB::Var> = (**next_slice).borrow();
 
         let first_step = local.step_flags[0];
         let final_step = local.step_flags[NUM_ROUNDS - 1];

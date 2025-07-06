@@ -235,8 +235,9 @@ impl<AB: AirBuilder> Air<AB> for Blake3Air {
     #[inline]
     fn eval(&self, builder: &mut AB) {
         let main = builder.main();
-        let local = main.row_slice(0);
-        let local: &Blake3Cols<AB::Var> = (*local).borrow();
+        let local_option = main.row_slice(0);
+        let local_slice = local_option.as_ref().expect("row_slice returned None");
+        let local: &Blake3Cols<AB::Var> = (**local_slice).borrow();
 
         let initial_row_3 = [
             local.counter_low.clone(),
