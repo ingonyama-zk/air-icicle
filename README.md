@@ -29,13 +29,8 @@ cargo run --package icicle-keccak-air --example keccak_icicle_trace_sym
 cargo bench
 ```
 
-In order for this integration to be functional we had to redefine some properties of the Field trait in ICICLE, and the ICICLE branch used for this purpose can be accesed in the [p3 branch](https://github.com/ingonyama-zk/icicle/tree/p3) of the ICICLE repository.
-
-The trace can in principle run on a GPU due to ICICLE device agnostic API's. Note however it is not yet optimized for this purpose.
-
 * Currently field arithmetic which is not suitable for parallel compute is sent back to Host by default. So even though one might see GPU usage, the witness generation compute happens only in the host. 
 * We need to redesign the witness gen to be suitable for GPU compute and it is quite non trivial. We will address this in a future release.
-
 
 Note: We have currently not implemented a backend prover and will do so in future work. We encourage users to try different air circuits in this framework and build their own STARK provers using the ICICLE framework.
 
