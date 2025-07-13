@@ -5,7 +5,9 @@
 use core::marker::PhantomData;
 use core::ops::{Add, Mul, Sub};
 
-use icicle_core::traits::{Arithmetic, FieldImpl};
+use icicle_core::traits::Arithmetic;
+use icicle_core::field::Field;
+use icicle_core::bignum::BigNum;
 
 use crate::symbolic_expression::SymbolicExpression;
 
@@ -20,13 +22,13 @@ pub enum Entry {
 
 /// A variable within the evaluation window, i.e. a column in either the local or next row.
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub struct SymbolicVariable<F: FieldImpl + Arithmetic> {
+pub struct SymbolicVariable<F: Field + Arithmetic> {
     pub entry: Entry,
     pub index: usize,
     pub(crate) _phantom: PhantomData<F>,
 }
 
-impl<F: FieldImpl + Arithmetic> SymbolicVariable<F> {
+impl<F: Field + Arithmetic> SymbolicVariable<F> {
     pub const fn new(entry: Entry, index: usize) -> Self {
         Self {
             entry,
@@ -43,13 +45,13 @@ impl<F: FieldImpl + Arithmetic> SymbolicVariable<F> {
     }
 }
 
-impl<F: FieldImpl + Arithmetic> From<SymbolicVariable<F>> for SymbolicExpression<F> {
+impl<F: Field + Arithmetic> From<SymbolicVariable<F>> for SymbolicExpression<F> {
     fn from(value: SymbolicVariable<F>) -> Self {
         SymbolicExpression::Variable(value)
     }
 }
 
-impl<F: FieldImpl + Arithmetic, T> Add<T> for SymbolicVariable<F>
+impl<F: Field + Arithmetic, T> Add<T> for SymbolicVariable<F>
 where
     T: Into<SymbolicExpression<F>>,
 {
@@ -60,7 +62,7 @@ where
     }
 }
 
-impl<F: FieldImpl + Arithmetic, T> Sub<T> for SymbolicVariable<F>
+impl<F: Field + Arithmetic, T> Sub<T> for SymbolicVariable<F>
 where
     T: Into<SymbolicExpression<F>>,
 {
@@ -71,7 +73,7 @@ where
     }
 }
 
-impl<F: FieldImpl + Arithmetic, T> Mul<T> for SymbolicVariable<F>
+impl<F: Field + Arithmetic, T> Mul<T> for SymbolicVariable<F>
 where
     T: Into<SymbolicExpression<F>>,
 {

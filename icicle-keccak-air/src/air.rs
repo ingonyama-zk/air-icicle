@@ -5,7 +5,9 @@
 use alloc::vec::Vec;
 use core::borrow::Borrow;
 
-use icicle_core::traits::{Arithmetic, FieldImpl};
+use icicle_core::traits::Arithmetic;
+use icicle_core::field::Field;
+use icicle_core::bignum::BigNum;
 use icicle_trace::{Air, AirBuilder, BaseAir};
 
 use p3_matrix::dense::RowMajorMatrix;
@@ -22,7 +24,7 @@ use crate::{generate_trace_rows, BITS_PER_LIMB, NUM_ROUNDS, U64_LIMBS};
 pub struct KeccakAir {}
 
 impl KeccakAir {
-    pub fn generate_trace_rows<F: FieldImpl + Arithmetic>(
+    pub fn generate_trace_rows<F: Field + Arithmetic>(
         &self,
         num_hashes: usize,
         extra_capacity_bits: usize,

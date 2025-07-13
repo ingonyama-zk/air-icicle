@@ -8,7 +8,9 @@ use core::array;
 use core::iter::repeat;
 use core::mem::transmute;
 
-use icicle_core::traits::{Arithmetic, FieldImpl};
+use icicle_core::traits::Arithmetic;
+use icicle_core::field::Field;
+use icicle_core::bignum::BigNum;
 use icicle_trace::utils::{u64_to_16_bit_limbs, u64_to_bits_le};
 use p3_matrix::dense::RowMajorMatrix;
 use tracing::instrument;
@@ -18,7 +20,7 @@ use crate::{NUM_ROUNDS, R, RC, U64_LIMBS};
 
 // TODO: Take generic iterable
 #[instrument(name = "generate Keccak trace", skip_all)]
-pub fn generate_trace_rows<F: FieldImpl + Arithmetic>(
+pub fn generate_trace_rows<F: Field + Arithmetic>(
     inputs: Vec<[u64; 25]>,
     extra_capacity_bits: usize,
 ) -> RowMajorMatrix<F> {
@@ -50,7 +52,7 @@ pub fn generate_trace_rows<F: FieldImpl + Arithmetic>(
 }
 
 /// `rows` will normally consist of 24 rows, with an exception for the final row.
-fn generate_trace_rows_for_perm<F: FieldImpl + Arithmetic>(
+fn generate_trace_rows_for_perm<F: Field + Arithmetic>(
     rows: &mut [KeccakCols<F>],
     input: [u64; 25],
 ) {
@@ -81,7 +83,7 @@ fn generate_trace_rows_for_perm<F: FieldImpl + Arithmetic>(
     }
 }
 
-fn generate_trace_row_for_round<F: FieldImpl + Arithmetic>(
+fn generate_trace_row_for_round<F: Field + Arithmetic>(
     row: &mut KeccakCols<F>,
     round: usize,
     current_state: &mut [[u64; 5]; 5],

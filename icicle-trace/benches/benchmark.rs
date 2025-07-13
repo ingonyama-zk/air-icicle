@@ -1,7 +1,8 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use icicle_core::{
     field::Field,
-    traits::{Arithmetic, FieldImpl},
+    traits::Arithmetic,
+    bignum::BigNum,
 };
 use icicle_runtime::Device;
 use icicle_babybear::field::ScalarField as Fr;
@@ -39,7 +40,7 @@ impl<F> FibonacciRow<F> {
         FibonacciRow { left, right }
     }
 }
-pub fn generate_trace_rows<F: FieldImpl + Arithmetic>(
+pub fn generate_trace_rows<F: Field + Arithmetic>(
     a: u32,
     b: u32,
     n: usize,

@@ -4,7 +4,9 @@
 
 use alloc::vec;
 use alloc::vec::Vec;
-use icicle_core::traits::{Arithmetic, FieldImpl};
+use icicle_core::traits::Arithmetic;
+use icicle_core::field::Field;
+use icicle_core::bignum::BigNum;
 
 use crate::{Air, AirBuilder, AirBuilderWithPublicValues, PairBuilder};
 use p3_matrix::dense::RowMajorMatrix;
@@ -26,7 +28,7 @@ pub fn get_log_quotient_degree<F, A>(
     num_public_values: usize,
 ) -> usize
 where
-    F: FieldImpl + Arithmetic,
+    F: Field + Arithmetic,
     A: Air<SymbolicAirBuilder<F>>,
 {
     // We pad to at least degree 2, since a quotient argument doesn't make sense with smaller degrees.
@@ -46,7 +48,7 @@ pub fn get_max_constraint_degree<F, A>(
     num_public_values: usize,
 ) -> usize
 where
-    F: FieldImpl + Arithmetic,
+    F: Field + Arithmetic,
     A: Air<SymbolicAirBuilder<F>>,
 {
     get_symbolic_constraints(air, preprocessed_width, num_public_values)
@@ -63,7 +65,7 @@ pub fn get_symbolic_constraints<F, A>(
     num_public_values: usize,
 ) -> Vec<SymbolicExpression<F>>
 where
-    F: FieldImpl + Arithmetic,
+    F: Field + Arithmetic,
     A: Air<SymbolicAirBuilder<F>>,
 {
     let mut builder = SymbolicAirBuilder::new(preprocessed_width, air.width(), num_public_values);
@@ -72,14 +74,14 @@ where
 }
 
 #[derive(Debug)]
-pub struct SymbolicAirBuilder<F: FieldImpl + Arithmetic> {
+pub struct SymbolicAirBuilder<F: Field + Arithmetic> {
     preprocessed: RowMajorMatrix<SymbolicVariable<F>>,
     main: RowMajorMatrix<SymbolicVariable<F>>,
     public_values: Vec<SymbolicVariable<F>>,
     constraints: Vec<SymbolicExpression<F>>,
 }
 
-impl<F: FieldImpl + Arithmetic> SymbolicAirBuilder<F> {
+impl<F: Field + Arithmetic> SymbolicAirBuilder<F> {
     pub(crate) fn new(preprocessed_width: usize, width: usize, num_public_values: usize) -> Self {
         let prep_values = [0, 1]
             .into_iter()
@@ -110,7 +112,7 @@ impl<F: FieldImpl + Arithmetic> SymbolicAirBuilder<F> {
     }
 }
 
-impl<F: FieldImpl + Arithmetic> AirBuilder for SymbolicAirBuilder<F> {
+impl<F: Field + Arithmetic> AirBuilder for SymbolicAirBuilder<F> {
     type F = F;
     type Expr = SymbolicExpression<F>;
     type Var = SymbolicVariable<F>;
@@ -151,14 +153,14 @@ impl<F: FieldImpl + Arithmetic> AirBuilder for SymbolicAirBuilder<F> {
     }
 }
 
-impl<F: FieldImpl + Arithmetic> AirBuilderWithPublicValues for SymbolicAirBuilder<F> {
+impl<F: Field + Arithmetic> AirBuilderWithPublicValues for SymbolicAirBuilder<F> {
     type PublicVar = SymbolicVariable<F>;
     fn public_values(&self) -> &[Self::PublicVar] {
         &self.public_values
     }
 }
 
-impl<F: FieldImpl + Arithmetic> PairBuilder for SymbolicAirBuilder<F> {
+impl<F: Field + Arithmetic> PairBuilder for SymbolicAirBuilder<F> {
     fn preprocessed(&self) -> Self::M {
         self.preprocessed.clone()
     }
