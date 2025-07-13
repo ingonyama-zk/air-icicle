@@ -6,11 +6,13 @@ use alloc::vec;
 use alloc::vec::Vec;
 use core::ops::Mul;
 
-use icicle_core::traits::{Arithmetic, FieldImpl};
+use icicle_core::traits::Arithmetic;
+use icicle_core::field::Field;
+use icicle_core::bignum::BigNum;
 
 /// An affine function over columns in a PAIR.
 #[derive(Clone, Debug)]
-pub struct VirtualPairCol<F: FieldImpl + Arithmetic> {
+pub struct VirtualPairCol<F: Field + Arithmetic> {
     column_weights: Vec<(PairCol, F)>,
     constant: F,
 }
@@ -31,7 +33,7 @@ impl PairCol {
     }
 }
 
-impl<F: FieldImpl + Arithmetic> VirtualPairCol<F> {
+impl<F: Field + Arithmetic> VirtualPairCol<F> {
     pub const fn new(column_weights: Vec<(PairCol, F)>, constant: F) -> Self {
         Self {
             column_weights,
@@ -120,7 +122,7 @@ impl<F: FieldImpl + Arithmetic> VirtualPairCol<F> {
     pub fn apply<Expr, Var>(&self, preprocessed: &[Var], main: &[Var]) -> Expr
     where
         F: Into<Expr>,
-        Expr: FieldImpl + Arithmetic + Mul<F, Output = Expr>,
+        Expr: Field + Arithmetic + Mul<F, Output = Expr>,
         Var: Into<Expr> + Copy,
     {
         let mut result = self.constant.clone().into();

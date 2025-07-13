@@ -1,6 +1,8 @@
 use std::borrow::Borrow;
 
-use icicle_core::traits::{Arithmetic, FieldImpl};
+use icicle_core::traits::Arithmetic;
+use icicle_core::field::Field;
+use icicle_core::bignum::BigNum;
 
 use icicle_babybear::field::ScalarField as Fr;
 //constraints
@@ -11,13 +13,13 @@ use p3_matrix::dense::RowMajorMatrix;
 
 pub struct FibonacciAir {}
 
-impl<F: FieldImpl> BaseAir<F> for FibonacciAir {
+impl<F: Field> BaseAir<F> for FibonacciAir {
     fn width(&self) -> usize {
         NUM_FIBONACCI_COLS
     }
 }
 
-pub fn generate_trace_rows<F: FieldImpl + Arithmetic>(
+pub fn generate_trace_rows<F: Field + Arithmetic>(
     a: u32,
     b: u32,
     n: usize,
@@ -42,17 +44,17 @@ pub fn generate_trace_rows<F: FieldImpl + Arithmetic>(
 
 const NUM_FIBONACCI_COLS: usize = 2;
 
-pub struct FibonacciRow<F: FieldImpl + Arithmetic> {
+pub struct FibonacciRow<F: Field + Arithmetic> {
     pub left: F,
     pub right: F,
 }
 
-impl<F: FieldImpl + Arithmetic> FibonacciRow<F> {
+impl<F: Field + Arithmetic> FibonacciRow<F> {
     const fn new(left: F, right: F) -> FibonacciRow<F> {
         FibonacciRow { left, right }
     }
 }
-impl<F: FieldImpl + Arithmetic> Borrow<FibonacciRow<F>> for [F] {
+impl<F: Field + Arithmetic> Borrow<FibonacciRow<F>> for [F] {
     fn borrow(&self) -> &FibonacciRow<F> {
         debug_assert_eq!(self.len(), NUM_FIBONACCI_COLS);
         let (prefix, shorts, suffix) = unsafe { self.align_to::<FibonacciRow<F>>() };

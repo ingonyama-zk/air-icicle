@@ -4,8 +4,9 @@
 
 use core::ops::{Add, Mul, Sub};
 
-use icicle_core::traits::{Arithmetic, FieldImpl};
-
+use icicle_core::bignum;
+use icicle_core::traits::Arithmetic;
+use icicle_core::{field::Field,bignum::BigNum};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 
@@ -20,7 +21,7 @@ pub trait BaseAir<F>: Sync {
 }
 
 ///  An AIR with 0 or more public values.
-pub trait BaseAirWithPublicValues<F: FieldImpl + Arithmetic>: BaseAir<F> {
+pub trait BaseAirWithPublicValues<F: Field + Arithmetic>: BaseAir<F> {
     fn num_public_values(&self) -> usize {
         0
     }
@@ -32,7 +33,7 @@ pub trait Air<AB: AirBuilder>: BaseAir<AB::F> {
 }
 
 pub trait AirBuilder: Sized {
-    type F: FieldImpl;
+    type F: Field;
 
     type Expr: Clone
         + Send

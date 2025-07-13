@@ -4,10 +4,10 @@ members = ["icicle-blake3-air", "icicle-trace", "icicle-keccak-air"]
 
 [workspace.dependencies]
 blake3 = "1.5"
-icicle-runtime = { git = "https://github.com/ingonyama-zk/icicle.git", branch = "main" }
-icicle-core = { git = "https://github.com/ingonyama-zk/icicle.git", branch = "main" }
-icicle-babybear = { git = "https://github.com/ingonyama-zk/icicle.git", branch = "main" }
-icicle-hash = { git = "https://github.com/ingonyama-zk/icicle.git", branch = "main" }
+icicle-runtime = { git = "https://github.com/ingonyama-zk/icicle.git", tag = "v4.0.0" }
+icicle-core = { git = "https://github.com/ingonyama-zk/icicle.git", tag = "v4.0.0" }
+icicle-babybear = { git = "https://github.com/ingonyama-zk/icicle.git", tag = "v4.0.0" }
+icicle-hash = { git = "https://github.com/ingonyama-zk/icicle.git", tag = "v4.0.0" }
 
 rand = "0.8.5"
 rayon = "1.7.0"

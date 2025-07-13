@@ -1,6 +1,8 @@
 use std::borrow::Borrow;
 
-use icicle_core::traits::{Arithmetic, FieldImpl};
+use icicle_core::traits::Arithmetic;
+use icicle_core::field::Field;
+use icicle_core::bignum::BigNum;
 
 use icicle_babybear::field::ScalarField as Fr;
 //constraints
@@ -14,7 +16,7 @@ use p3_matrix::Matrix;
 
 pub struct FibonacciAir {}
 
-impl<F: FieldImpl> BaseAir<F> for FibonacciAir {
+impl<F: Field> BaseAir<F> for FibonacciAir {
     fn width(&self) -> usize {
         NUM_FIBONACCI_COLS
     }
@@ -53,7 +55,7 @@ impl<AB: AirBuilderWithPublicValues> Air<AB> for FibonacciAir {
     }
 }
 
-pub fn generate_trace_rows<F: FieldImpl + Arithmetic>(
+pub fn generate_trace_rows<F: Field + Arithmetic>(
     a: u32,
     b: u32,
     n: usize,

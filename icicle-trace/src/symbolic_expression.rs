@@ -11,13 +11,15 @@ use std::sync::Arc;
 
 use alloc::fmt;
 use alloc::vec::Vec;
-use icicle_core::traits::{Arithmetic, FieldImpl};
+use icicle_core::traits::Arithmetic;
+use icicle_core::field::Field;
+use icicle_core::bignum::BigNum;
 
 use crate::symbolic_variable::SymbolicVariable;
 
 /// An expression over `SymbolicVariable`s.
 #[derive(Clone, Debug, PartialEq)]
-pub enum SymbolicExpression<F: FieldImpl + Arithmetic> {
+pub enum SymbolicExpression<F: Field + Arithmetic> {
     Variable(SymbolicVariable<F>),
     IsFirstRow,
     IsLastRow,
@@ -44,7 +46,7 @@ pub enum SymbolicExpression<F: FieldImpl + Arithmetic> {
     },
 }
 
-impl<F: FieldImpl + Arithmetic> SymbolicExpression<F> {
+impl<F: Field + Arithmetic> SymbolicExpression<F> {
     /// Returns the multiple of `n` (the trace length) in this expression's degree.
     pub const fn degree_multiple(&self) -> usize {
         match self {
@@ -81,7 +83,7 @@ impl<F: FieldImpl + Arithmetic> SymbolicExpression<F> {
     }
 }
 
-impl<F: FieldImpl + Arithmetic + Display> Display for SymbolicExpression<F> {
+impl<F: Field + Arithmetic + Display> Display for SymbolicExpression<F> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Variable(var) => write!(f, "{:?}", var),
@@ -97,19 +99,19 @@ impl<F: FieldImpl + Arithmetic + Display> Display for SymbolicExpression<F> {
     }
 }
 
-impl<F: FieldImpl + Arithmetic> Default for SymbolicExpression<F> {
+impl<F: Field + Arithmetic> Default for SymbolicExpression<F> {
     fn default() -> Self {
         Self::Constant(F::zero())
     }
 }
 
-impl<F: FieldImpl + Arithmetic> From<F> for SymbolicExpression<F> {
+impl<F: Field + Arithmetic> From<F> for SymbolicExpression<F> {
     fn from(value: F) -> Self {
         Self::Constant(value)
     }
 }
 
-impl<F: FieldImpl + Arithmetic, T> Add<T> for SymbolicExpression<F>
+impl<F: Field + Arithmetic, T> Add<T> for SymbolicExpression<F>
 where
     T: Into<Self>,
 {
@@ -142,7 +144,7 @@ where
     }
 }
 
-impl<F: FieldImpl + Arithmetic, T> AddAssign<T> for SymbolicExpression<F>
+impl<F: Field + Arithmetic, T> AddAssign<T> for SymbolicExpression<F>
 where
     T: Into<Self>,
 {
@@ -151,7 +153,7 @@ where
     }
 }
 
-impl<F: FieldImpl + Arithmetic, T> Sum<T> for SymbolicExpression<F>
+impl<F: Field + Arithmetic, T> Sum<T> for SymbolicExpression<F>
 where
     T: Into<Self>,
 {
@@ -161,7 +163,7 @@ where
     }
 }
 
-impl<F: FieldImpl + Arithmetic, T> Sub<T> for SymbolicExpression<F>
+impl<F: Field + Arithmetic, T> Sub<T> for SymbolicExpression<F>
 where
     T: Into<Self>,
 {
@@ -189,7 +191,7 @@ where
     }
 }
 
-impl<F: FieldImpl + Arithmetic, T> SubAssign<T> for SymbolicExpression<F>
+impl<F: Field + Arithmetic, T> SubAssign<T> for SymbolicExpression<F>
 where
     T: Into<Self>,
 {
@@ -198,7 +200,7 @@ where
     }
 }
 
-impl<F: FieldImpl + Arithmetic> Neg for SymbolicExpression<F> {
+impl<F: Field + Arithmetic> Neg for SymbolicExpression<F> {
     type Output = Self;
 
     fn neg(self) -> Self {
@@ -220,7 +222,7 @@ impl<F: FieldImpl + Arithmetic> Neg for SymbolicExpression<F> {
     }
 }
 
-impl<F: FieldImpl + Arithmetic, T> Mul<T> for SymbolicExpression<F>
+impl<F: Field + Arithmetic, T> Mul<T> for SymbolicExpression<F>
 where
     T: Into<Self>,
 {
@@ -261,7 +263,7 @@ where
     }
 }
 
-impl<F: FieldImpl + Arithmetic, T> MulAssign<T> for SymbolicExpression<F>
+impl<F: Field + Arithmetic, T> MulAssign<T> for SymbolicExpression<F>
 where
     T: Into<Self>,
 {
@@ -270,7 +272,7 @@ where
     }
 }
 
-impl<F: FieldImpl + Arithmetic, T> Product<T> for SymbolicExpression<F>
+impl<F: Field + Arithmetic, T> Product<T> for SymbolicExpression<F>
 where
     T: Into<Self>,
 {

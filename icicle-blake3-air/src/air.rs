@@ -5,7 +5,9 @@
 use alloc::vec::Vec;
 use core::borrow::Borrow;
 
-use icicle_core::traits::{Arithmetic, FieldImpl};
+use icicle_core::traits::Arithmetic;
+use icicle_core::field::Field;
+use icicle_core::bignum::BigNum;
 use icicle_trace::utils::{add2, add3, xor_32_shift};
 use icicle_trace::{Air, AirBuilder, BaseAir};
 use itertools::izip;
@@ -22,7 +24,7 @@ use crate::{generate_trace_rows, Blake3State, FullRound, QuarterRound};
 pub struct Blake3Air {}
 
 impl Blake3Air {
-    pub fn generate_trace_rows<F: FieldImpl + Arithmetic>(
+    pub fn generate_trace_rows<F: Field + Arithmetic>(
         &self,
         num_hashes: usize,
     ) -> RowMajorMatrix<F> {

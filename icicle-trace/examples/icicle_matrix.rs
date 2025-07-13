@@ -1,4 +1,6 @@
-use icicle_core::traits::FieldImpl;
+use icicle_core::traits::Arithmetic;
+use icicle_core::field::Field;
+use icicle_core::bignum::BigNum;
 
 use icicle_babybear::field::ScalarField as Fr;
 //constraints

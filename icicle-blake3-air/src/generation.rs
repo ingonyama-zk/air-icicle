@@ -5,7 +5,9 @@
 use alloc::vec;
 use alloc::vec::Vec;
 use core::array;
-use icicle_core::traits::{Arithmetic, FieldImpl};
+use icicle_core::traits::Arithmetic;
+use icicle_core::field::Field;
+use icicle_core::bignum::BigNum;
 
 use icicle_trace::utils::u32_to_bits_le;
 use p3_matrix::dense::RowMajorMatrix;
@@ -16,13 +18,13 @@ use crate::columns::{Blake3Cols, NUM_BLAKE3_COLS};
 use crate::constants::{permute, IV};
 use crate::{Blake3State, FullRound};
 
-pub fn zero_vec<F: FieldImpl + Arithmetic>(num_elements: usize) -> Vec<F> {
+pub fn zero_vec<F: Field + Arithmetic>(num_elements: usize) -> Vec<F> {
     vec![F::zero(); num_elements]
 }
 
 // TODO: Take generic iterable
 #[instrument(name = "generate Blake3 trace", skip_all)]
-pub fn generate_trace_rows<F: FieldImpl + Arithmetic>(inputs: Vec<[u32; 24]>) -> RowMajorMatrix<F> {
+pub fn generate_trace_rows<F: Field + Arithmetic>(inputs: Vec<[u32; 24]>) -> RowMajorMatrix<F> {
     let num_rows = inputs.len();
     assert!(
         num_rows.is_power_of_two(),
@@ -46,7 +48,7 @@ pub fn generate_trace_rows<F: FieldImpl + Arithmetic>(inputs: Vec<[u32; 24]>) ->
 }
 
 /// Each row is one full implementation of the Blake-3 hash.
-fn generate_trace_rows_for_perm<F: FieldImpl + Arithmetic>(
+fn generate_trace_rows_for_perm<F: Field + Arithmetic>(
     row: &mut Blake3Cols<F>,
     input: [u32; 24],
     counter: usize,
@@ -115,7 +117,7 @@ fn generate_trace_rows_for_perm<F: FieldImpl + Arithmetic>(
     row.outputs[3] = array::from_fn(|i| u32_to_bits_le(state[3][i] ^ input[20 + i]));
 }
 
-fn generate_trace_row_for_round<F: FieldImpl + Arithmetic>(
+fn generate_trace_row_for_round<F: Field + Arithmetic>(
     round_data: &mut FullRound<F>,
     state: &mut [[u32; 4]; 4],
     m_vec: &[u32; 16],
@@ -223,7 +225,7 @@ fn verifiable_half_round(
     (a, b, c, d)
 }
 
-fn save_state_to_trace<FA: FieldImpl + Arithmetic>(
+fn save_state_to_trace<FA: Field + Arithmetic>(
     trace: &mut Blake3State<FA>,
     state: &[[u32; 4]; 4],
 ) {

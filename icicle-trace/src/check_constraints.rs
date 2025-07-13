@@ -9,9 +9,11 @@ use p3_matrix::stack::VerticalPair;
 use p3_matrix::Matrix;
 use tracing::instrument;
 
-use icicle_core::traits::{Arithmetic, FieldImpl};
+use icicle_core::traits::Arithmetic;
+use icicle_core::field::Field;
+use icicle_core::bignum::BigNum;
 
-pub fn from_bool<F: FieldImpl + Arithmetic>(b: bool) -> F {
+pub fn from_bool<F: Field + Arithmetic>(b: bool) -> F {
     if b {
         F::one()
     } else {
@@ -22,7 +24,7 @@ pub fn from_bool<F: FieldImpl + Arithmetic>(b: bool) -> F {
 #[instrument(name = "check constraints", skip_all)]
 pub(crate) fn check_constraints<F, A>(air: &A, main: &RowMajorMatrix<F>, public_values: &Vec<F>)
 where
-    F: FieldImpl + Arithmetic,
+    F: Field + Arithmetic,
     A: for<'a> Air<DebugConstraintBuilder<'a, F>>,
 {
     let height = main.height();
@@ -55,7 +57,7 @@ where
 /// An `AirBuilder` which asserts that each constraint is zero, allowing any failed constraints to
 /// be detected early.
 #[derive(Debug)]
-pub struct DebugConstraintBuilder<'a, F: FieldImpl + Arithmetic> {
+pub struct DebugConstraintBuilder<'a, F: Field + Arithmetic> {
     row_index: usize,
     main: VerticalPair<RowMajorMatrixView<'a, F>, RowMajorMatrixView<'a, F>>,
     public_values: &'a [F],
@@ -66,7 +68,7 @@ pub struct DebugConstraintBuilder<'a, F: FieldImpl + Arithmetic> {
 
 impl<'a, F> AirBuilder for DebugConstraintBuilder<'a, F>
 where
-    F: FieldImpl + Arithmetic,
+    F: Field + Arithmetic,
 {
     type F = F;
     type Expr = F;
@@ -123,7 +125,7 @@ where
     }
 }
 
-impl<F: FieldImpl + Arithmetic> AirBuilderWithPublicValues for DebugConstraintBuilder<'_, F> {
+impl<F: Field + Arithmetic> AirBuilderWithPublicValues for DebugConstraintBuilder<'_, F> {
     type PublicVar = Self::F;
 
     fn public_values(&self) -> &[Self::F] {

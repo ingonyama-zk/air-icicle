@@ -6,7 +6,9 @@
 
 use core::array;
 
-use icicle_core::traits::{Arithmetic, FieldImpl};
+use icicle_core::traits::Arithmetic;
+use icicle_core::field::Field;
+use icicle_core::bignum::BigNum;
 
 use crate::AirBuilder;
 
@@ -14,7 +16,7 @@ use crate::AirBuilder;
 ///
 /// The output array is in little-endian order.
 #[inline]
-pub fn u32_to_bits_le<FA: FieldImpl + Arithmetic>(val: u32) -> [FA; 32] {
+pub fn u32_to_bits_le<FA: Field + Arithmetic>(val: u32) -> [FA; 32] {
     // We do this over F::from_canonical_u32 as from_canonical_u32 can be slow
     // like in the case of monty field.
     array::from_fn(|i| {
@@ -191,7 +193,7 @@ pub const fn indices_arr<const N: usize>() -> [usize; N] {
 ///
 /// The output array is in little-endian order.
 #[inline]
-pub fn u64_to_16_bit_limbs<R: FieldImpl + Arithmetic>(val: u64) -> [R; 4] {
+pub fn u64_to_16_bit_limbs<R: Field + Arithmetic>(val: u64) -> [R; 4] {
     array::from_fn(|i| R::from_u32((val >> (16 * i)) as u16 as u32))
 }
 
@@ -199,6 +201,6 @@ pub fn u64_to_16_bit_limbs<R: FieldImpl + Arithmetic>(val: u64) -> [R; 4] {
 ///
 /// The output array is in little-endian order.
 #[inline]
-pub fn u64_to_bits_le<R: FieldImpl + Arithmetic>(val: u64) -> [R; 64] {
+pub fn u64_to_bits_le<R: Field + Arithmetic>(val: u64) -> [R; 64] {
     array::from_fn(|i| R::from_u32((val & (1 << i) != 0) as u32))
 }
